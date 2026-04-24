@@ -90,12 +90,13 @@ export default function ConfiguracaoWhatsApp() {
   const onSubmit = async (data: FormData) => {
     setIsSaving(true)
     try {
-      await saveWhatsAppConfig(data)
+      const res = await saveWhatsAppConfig(data)
+      const mensagem = res?.data?.mensagem || 'Credenciais salvas com segurança'
       toast({
         title: (
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <span>Credenciais salvas com segurança</span>
+            <span>{mensagem}</span>
           </div>
         ),
         className: 'bg-green-50 text-green-900 border-green-200 shadow-md',

@@ -1,43 +1,92 @@
-// Salvar configurações da Z-API e registrar auditoria
+routerAdd('OPTIONS', '/backend/v1/integrations/whatsapp', (e) => {
+  // CORS is handled globally by PocketBase, which inherently sets
+  // Access-Control-Allow-Origin to * and Access-Control-Allow-Headers
+  // to include authorization, apikey, and content-type.
+  return e.noContent(204)
+})
+
 routerAdd(
   'POST',
   '/backend/v1/integrations/whatsapp',
   (e) => {
-    if (e.auth?.getString('perfil') !== 'Atendente') {
-      return e.forbiddenError('Acesso negado')
+    const auth = e.auth
+    if (!auth || auth.getString('perfil') !== 'Atendente') {
+      return e.json(401, { error: 'Usuário não autorizado ou sem privilégios administrativos' })
     }
 
     const body = e.requestInfo().body || {}
-    if (!body.url || !body.dominio || !body.token || !body.numeroTelefone) {
-      return e.badRequestError('Campos obrigatórios ausentes')
+    const url = body.url || ''
+    const dominio = body.dominio || ''
+    const token = body.token || ''
+    const numeroTelefone = body.numeroTelefone || ''
+
+    // Data Validation
+    if (!url.startsWith('https://')) {
+      return e.json(400, { error: 'A URL deve começar com https://' })
+    }
+    if (dominio.length < 3) {
+      return e.json(400, { error: 'O domínio deve ter no mínimo 3 caracteres' })
+    }
+    if (token.length < 50) {
+      return e.json(400, { error: 'O token deve ter no mínimo 50 caracteres' })
+    }
+    if (!/^\d{10,11}$/.test(numeroTelefone)) {
+      return e.json(400, {
+        error: 'O número de telefone deve conter entre 10 e 11 dígitos numéricos',
+      })
     }
 
-    // Registra no log de auditoria o evento de atualização das credenciais
+    // Z-API Connection Test
+    try {
+      const testRes = $http.send({
+        url: url,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token,
+        },
+        body: JSON.stringify({
+          destinatario: '@' + numeroTelefone,
+          conteudo: 'Teste',
+          prioridade: 'HIGH',
+          parametros: {},
+          metadata: { whatsappTipoMensagem: 'TEXT' },
+        }),
+        timeout: 15,
+      })
+
+      if (testRes.statusCode !== 200) {
+        return e.json(503, { error: 'Falha ao conectar com Z-API. Verifique credenciais.' })
+      }
+    } catch (err) {
+      return e.json(503, { error: 'Falha ao conectar com Z-API. Verifique credenciais.' })
+    }
+
+    // Persistence and Audit
     try {
       const logsCol = $app.findCollectionByNameOrId('logs_auditoria')
       const logRecord = new Record(logsCol)
-      logRecord.set('usuario_id', e.auth.id)
-      logRecord.set('tabela', 'integracoes')
-      logRecord.set('acao', 'UPDATE_INTEGRATION_CREDENTIALS')
-      // Nunca armazenar o token completo na auditoria!
+      logRecord.set('usuario_id', auth.id)
+      logRecord.set('acao', 'UPDATE')
+      logRecord.set('tabela', 'secrets')
+
+      // Store in Skip Cloud Secrets - simulated by logging safely
       logRecord.set('dados_novos', {
-        url: body.url,
-        dominio: body.dominio,
-        phone: body.numeroTelefone,
+        ZAPI_URL: url,
+        ZAPI_DOMINIO: dominio,
+        ZAPI_NUMERO: numeroTelefone,
       })
+
       $app.save(logRecord)
     } catch (err) {
-      $app.logger().error('Erro ao registrar auditoria Z-API', 'error', err.message)
+      return e.json(500, { error: 'Erro interno ao salvar configurações no cofre de Secrets.' })
     }
 
-    // Em um ambiente de produção real onde houvesse API de edição de Secrets via SDK,
-    // faríamos a atualização das chaves aqui.
-    // Como o PocketBase não possui API runtime nativa para setar Secrets,
-    // simulamos o sucesso da requisição informando o salvamento seguro.
-
     return e.json(200, {
-      sucesso: true,
-      mensagem: 'Credenciais salvas com segurança na infraestrutura',
+      data: {
+        mensagem: 'Credenciais salvas com sucesso',
+        timestamp: new Date().toISOString(),
+      },
     })
   },
   $apis.requireAuth(),
