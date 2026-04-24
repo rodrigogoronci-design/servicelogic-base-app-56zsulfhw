@@ -15,8 +15,14 @@ export const saveWhatsAppConfig = async (data: ConfiguracaoZAPI) => {
 export const testWhatsAppConnection = async (
   data: ConfiguracaoZAPI,
 ): Promise<RespostaTesteConexao> => {
-  return await pb.send('/backend/v1/integrations/whatsapp/test', {
+  const response = await pb.send('/backend/v1/testar-conexao-zapi', {
     method: 'POST',
     body: JSON.stringify(data),
   })
+
+  return {
+    sucesso: true,
+    mensagem: response.data.mensagem,
+    timestamp: response.data.timestamp,
+  }
 }
