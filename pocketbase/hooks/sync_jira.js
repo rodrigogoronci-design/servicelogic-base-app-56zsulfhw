@@ -67,6 +67,22 @@ routerAdd('POST', '/backend/v1/sync/jira', (e) => {
     return e.internalServerError('Falha ao atualizar banco de dados após retentativas: ' + lastErr)
   }
 
+  try {
+    const notifCol = $app.findCollectionByNameOrId('notificacoes')
+    const notifAtendente = new Record(notifCol)
+    notifAtendente.set('usuario_id', chamado.get('atendente_id'))
+    notifAtendente.set('tipo', 'Sistema')
+    notifAtendente.set('titulo', 'Jira: Tarefa Concluída')
+    notifAtendente.set(
+      'mensagem',
+      `A tarefa do chamado ${chamado.get('numero')} foi concluída e o cliente notificado.`,
+    )
+    notifAtendente.set('lido', false)
+    $app.saveNoValidate(notifAtendente)
+  } catch (err) {
+    $app.logger().error('Falha ao notificar atendente', 'error', err)
+  }
+
   const types = ['WhatsApp', 'Email', 'Sistema']
   for (const t of types) {
     try {

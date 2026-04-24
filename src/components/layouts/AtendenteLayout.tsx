@@ -1,7 +1,8 @@
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom'
-import { Bell, LayoutDashboard, LogOut, Ticket, User } from 'lucide-react'
+import { History, LayoutDashboard, LogOut, Ticket, User } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
+import { NotificationBell } from '../NotificationBell'
 import {
   Sidebar,
   SidebarContent,
@@ -67,6 +68,14 @@ export function AtendenteLayout() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname.startsWith('/auditoria')}>
+                    <Link to="/auditoria">
+                      <History />
+                      <span>Auditoria</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -93,9 +102,7 @@ export function AtendenteLayout() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Bell className="size-5" />
-            </Button>
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full bg-muted">
