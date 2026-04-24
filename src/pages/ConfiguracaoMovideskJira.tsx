@@ -40,8 +40,7 @@ import {
   getMovideskJiraConfig,
   saveMovideskJiraConfig,
   salvarCredenciaisIntegracao,
-  testMovideskConnection,
-  testJiraConnection,
+  testarConexaoIntegracao,
 } from '@/services/integracoes'
 import { useToast } from '@/hooks/use-toast'
 
@@ -130,11 +129,11 @@ function IntegrationForm({
     }
     setTesting(true)
     try {
-      await testFn(values)
-      showToast('success', 'Conexão testada com sucesso!')
+      const res = await testFn({ ...values, tipo: type })
+      showToast('success', res?.data?.mensagem || 'Conexão testada com sucesso!')
     } catch (e: any) {
       triggerShake()
-      showToast('error', e.response?.mensagem || getErrorMessage(e))
+      showToast('error', e.response?.error || getErrorMessage(e))
     } finally {
       setTesting(false)
     }
@@ -332,7 +331,7 @@ export default function ConfiguracaoMovideskJira() {
           urlPlaceholder="https://atendimento.movidesk.com..."
           tokenPlaceholder="Cole aqui o token da API Movidesk"
           initialData={data?.movidesk}
-          testFn={testMovideskConnection}
+          testFn={testarConexaoIntegracao}
         />
         <IntegrationForm
           type="jira"
@@ -343,7 +342,7 @@ export default function ConfiguracaoMovideskJira() {
           urlPlaceholder="https://sua-empresa.atlassian.net"
           tokenPlaceholder="Cole aqui o token da API Jira"
           initialData={data?.jira}
-          testFn={testJiraConnection}
+          testFn={testarConexaoIntegracao}
         />
       </div>
     </div>

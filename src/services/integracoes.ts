@@ -21,15 +21,12 @@ export const salvarCredenciaisIntegracao = (data: {
     headers: { 'Content-Type': 'application/json' },
   })
 
-export const testMovideskConnection = (data: { url: string; token: string }) =>
-  pb.send('/backend/v1/test/movidesk', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: { 'Content-Type': 'application/json' },
-  })
-
-export const testJiraConnection = (data: { url: string; token: string }) =>
-  pb.send('/backend/v1/test/jira', {
+export const testarConexaoIntegracao = (data: {
+  tipo: 'movidesk' | 'jira'
+  url: string
+  token: string
+}) =>
+  pb.send('/backend/v1/testar-conexao-integracao', {
     method: 'POST',
     body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
