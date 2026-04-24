@@ -14,6 +14,7 @@ import RecuperarSenha from './pages/RecuperarSenha'
 import Dashboard from './pages/Dashboard'
 import Portal from './pages/Portal'
 import Validacao from './pages/Validacao'
+import ValidacaoExterna from './pages/ValidacaoExterna'
 import NotFound from './pages/NotFound'
 
 function RootRoute() {
@@ -36,6 +37,7 @@ const App = () => (
             {/* Rotas Públicas */}
             <Route path="/" element={<RootRoute />} />
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+            <Route path="/validacao/:chamado_id/:token" element={<ValidacaoExterna />} />
 
             {/* Rotas Atendente */}
             <Route element={<ProtectedRoute allowedProfiles={['Atendente']} />}>
