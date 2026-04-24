@@ -1,28 +1,61 @@
-/* Main App Component - Handles routing (using react-router-dom), query client and other providers - use this file to add all routes */
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import Index from './pages/Index'
-import NotFound from './pages/NotFound'
-import Layout from './components/Layout'
+import { AuthProvider, useAuth } from '@/hooks/use-auth'
 
-// ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
-// AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
+import Layout from './components/Layout'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { AtendenteLayout } from './components/layouts/AtendenteLayout'
+import { ClienteLayout } from './components/layouts/ClienteLayout'
+
+import Login from './pages/Login'
+import RecuperarSenha from './pages/RecuperarSenha'
+import Dashboard from './pages/Dashboard'
+import Portal from './pages/Portal'
+import Validacao from './pages/Validacao'
+import NotFound from './pages/NotFound'
+
+function RootRoute() {
+  const { user, isLoading } = useAuth()
+  if (isLoading) return null
+  if (user) {
+    return <Navigate to={user.perfil === 'Atendente' ? '/dashboard' : '/portal'} replace />
+  }
+  return <Login />
+}
 
 const App = () => (
   <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route element={<Layout />}>
+            {/* Rotas Públicas */}
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+
+            {/* Rotas Atendente */}
+            <Route element={<ProtectedRoute allowedProfiles={['Atendente']} />}>
+              <Route element={<AtendenteLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Route>
+            </Route>
+
+            {/* Rotas Cliente */}
+            <Route element={<ProtectedRoute allowedProfiles={['Cliente']} />}>
+              <Route element={<ClienteLayout />}>
+                <Route path="/portal" element={<Portal />} />
+                <Route path="/validacao" element={<Validacao />} />
+              </Route>
+            </Route>
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </AuthProvider>
   </BrowserRouter>
 )
 
