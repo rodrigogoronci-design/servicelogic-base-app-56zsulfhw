@@ -10,6 +10,17 @@ export const saveMovideskJiraConfig = (data: any) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
+export const salvarCredenciaisIntegracao = (data: {
+  tipo: 'movidesk' | 'jira'
+  url: string
+  token: string
+}) =>
+  pb.send('/backend/v1/salvar-credenciais-integracao', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  })
+
 export const testMovideskConnection = (data: { url: string; token: string }) =>
   pb.send('/backend/v1/test/movidesk', {
     method: 'POST',

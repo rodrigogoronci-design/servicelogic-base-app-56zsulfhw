@@ -39,6 +39,7 @@ import { getErrorMessage } from '@/lib/pocketbase/errors'
 import {
   getMovideskJiraConfig,
   saveMovideskJiraConfig,
+  salvarCredenciaisIntegracao,
   testMovideskConnection,
   testJiraConnection,
 } from '@/services/integracoes'
@@ -53,7 +54,7 @@ const schema = z.object({
   token: z
     .string()
     .min(1, 'Campo obrigatório')
-    .refine((s) => s.includes('****') || s.length >= 10, 'Mínimo de 10 caracteres'),
+    .refine((s) => s.includes('****') || s.length >= 30, 'Mínimo de 30 caracteres'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -109,12 +110,12 @@ function IntegrationForm({
   const onSave = async (data: FormData) => {
     setSaving(true)
     try {
-      await saveMovideskJiraConfig({ [type]: data })
-      showToast('success', 'Credenciais salvas com segurança')
+      await salvarCredenciaisIntegracao({ tipo, url: data.url, token: data.token })
+      showToast('success', 'Credenciais salvas com sucesso')
       setTimeout(() => window.location.reload(), 2000)
     } catch (e: any) {
       triggerShake()
-      showToast('error', 'Erro ao salvar. Tente novamente.')
+      showToast('error', e.response?.error || 'Erro ao salvar. Tente novamente.')
     } finally {
       setSaving(false)
     }
