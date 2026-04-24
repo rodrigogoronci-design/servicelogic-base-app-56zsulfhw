@@ -2,12 +2,28 @@ import { useState, useEffect } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import { Loader2, Save, Trash, Activity } from 'lucide-react'
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
+import {
+  Loader2,
+  Save,
+  Trash,
+  Play,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  XCircle,
+  LayoutDashboard,
+  Ticket,
+} from 'lucide-react'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  CardDescription,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Form,
   FormField,
@@ -15,6 +31,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -25,42 +42,38 @@ import {
   testMovideskConnection,
   testJiraConnection,
 } from '@/services/integracoes'
+import { useToast } from '@/hooks/use-toast'
 
 const schema = z.object({
   url: z
     .string()
+    .min(1, 'Campo obrigatório')
     .url('URL inválida')
     .refine((s) => s.startsWith('https://'), 'Deve começar com https://'),
-  token: z.string().refine((s) => s.includes('****') || s.length >= 30, 'Mínimo de 30 caracteres'),
+  token: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .refine((s) => s.includes('****') || s.length >= 10, 'Mínimo de 10 caracteres'),
 })
 
 type FormData = z.infer<typeof schema>
 
-interface IntegrationFormProps {
-  type: 'movidesk' | 'jira'
-  title: string
-  cardClasses: string
-  labelClasses?: string
-  inputClasses?: string
-  urlPlaceholder: string
-  tokenPlaceholder: string
-  initialData: any
-  testFn: (data: any) => Promise<any>
-}
-
 function IntegrationForm({
   type,
   title,
-  cardClasses,
-  labelClasses,
-  inputClasses,
+  desc,
+  border,
+  icon,
   urlPlaceholder,
   tokenPlaceholder,
   initialData,
   testFn,
-}: IntegrationFormProps) {
+}: any) {
   const [testing, setTesting] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showToken, setShowToken] = useState(false)
+  const [shake, setShake] = useState(false)
+  const { toast } = useToast()
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -68,14 +81,40 @@ function IntegrationForm({
     mode: 'onChange',
   })
 
+  const triggerShake = () => {
+    setShake(true)
+    setTimeout(() => setShake(false), 400)
+  }
+
+  const showToast = (type: 'success' | 'error', msg: string) => {
+    const isError = type === 'error'
+    toast({
+      description: (
+        <div className="flex items-center gap-3">
+          {isError ? (
+            <XCircle className="h-5 w-5 text-red-600" />
+          ) : (
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+          )}
+          <span className="font-medium">{msg}</span>
+        </div>
+      ),
+      className: isError
+        ? 'bg-red-50 text-red-900 border-red-200'
+        : 'bg-green-50 text-green-900 border-green-200',
+      duration: 4000,
+    })
+  }
+
   const onSave = async (data: FormData) => {
     setSaving(true)
     try {
       await saveMovideskJiraConfig({ [type]: data })
-      toast.success('Credenciais salvas com segurança')
+      showToast('success', 'Credenciais salvas com segurança')
       setTimeout(() => window.location.reload(), 2000)
     } catch (e: any) {
-      toast.error('Erro ao salvar. Tente novamente.')
+      triggerShake()
+      showToast('error', 'Erro ao salvar. Tente novamente.')
     } finally {
       setSaving(false)
     }
@@ -83,99 +122,163 @@ function IntegrationForm({
 
   const onTest = async () => {
     const values = form.getValues()
-    const res = schema.safeParse(values)
-    if (!res.success) {
+    if (!schema.safeParse(values).success) {
       form.trigger()
-      return
+      triggerShake()
+      return showToast('error', 'Preencha os campos corretamente.')
     }
     setTesting(true)
     try {
       await testFn(values)
-      toast.success('Conexão testada com sucesso!')
+      showToast('success', 'Conexão testada com sucesso!')
     } catch (e: any) {
-      const msg = e.response?.mensagem || getErrorMessage(e)
-      toast.error(msg)
+      triggerShake()
+      showToast('error', e.response?.mensagem || getErrorMessage(e))
     } finally {
       setTesting(false)
     }
   }
 
-  const onClear = () => {
-    form.reset({ url: '', token: '' })
-  }
-
   return (
-    <Card className={cn('w-full h-full flex flex-col', cardClasses)}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+    <Card
+      className={cn(
+        'relative flex flex-col shadow-md border-gray-200 rounded-lg p-8 bg-white',
+        border,
+        shake && 'animate-shake',
+      )}
+    >
+      {testing && (
+        <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex flex-col items-center justify-center animate-fade-in">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-3" />
+          <span className="text-sm font-medium text-gray-700">Testando conexão...</span>
+        </div>
+      )}
+      <CardHeader className="px-0 pt-0 pb-6 flex-row items-center gap-3 space-y-0">
+        <div className="p-2 bg-gray-50 rounded-md">{icon}</div>
+        <div>
+          <CardTitle className="text-xl font-bold text-gray-900">{title}</CardTitle>
+          <CardDescription className="text-sm text-gray-600 mt-0.5">{desc}</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 px-0 pb-6">
         <Form {...form}>
-          <form className="space-y-4">
+          <form className="space-y-6">
             <FormField
               control={form.control}
               name="url"
-              render={({ field }) => (
+              render={({ field, fieldState: { isDirty, invalid } }) => (
                 <FormItem>
-                  <FormLabel className={labelClasses}>URL da Instância / API</FormLabel>
+                  <FormLabel className="font-semibold text-gray-900">
+                    URL da Instância / API
+                  </FormLabel>
+                  <FormDescription className="text-sm text-gray-600">
+                    Endereço base para comunicação com o serviço.
+                  </FormDescription>
                   <FormControl>
-                    <Input placeholder={urlPlaceholder} className={inputClasses} {...field} />
+                    <div className="relative">
+                      <Input
+                        placeholder={urlPlaceholder}
+                        className={cn(
+                          'h-11 pr-10 focus-visible:ring-blue-500',
+                          isDirty && !invalid && 'border-green-500 focus-visible:ring-green-500',
+                          invalid && 'border-red-500 focus-visible:ring-red-500',
+                        )}
+                        {...field}
+                      />
+                      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        {isDirty && !invalid && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                        {invalid && <XCircle className="h-5 w-5 text-red-500" />}
+                      </div>
+                    </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="token"
-              render={({ field }) => (
+              render={({ field, fieldState: { isDirty, invalid } }) => (
                 <FormItem>
-                  <FormLabel className={labelClasses}>Token de Autenticação</FormLabel>
+                  <FormLabel className="font-semibold text-gray-900">
+                    Token de Autenticação
+                  </FormLabel>
+                  <FormDescription className="text-sm text-gray-600">
+                    Chave de acesso seguro gerada na plataforma.
+                  </FormDescription>
                   <FormControl>
-                    <Textarea
-                      placeholder={tokenPlaceholder}
-                      className={cn('resize-none h-24', inputClasses)}
-                      style={{ WebkitTextSecurity: 'disc' } as any}
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showToken ? 'text' : 'password'}
+                        placeholder={tokenPlaceholder}
+                        className={cn(
+                          'h-11 pr-20 focus-visible:ring-blue-500',
+                          isDirty && !invalid && 'border-green-500 focus-visible:ring-green-500',
+                          invalid && 'border-red-500 focus-visible:ring-red-500',
+                        )}
+                        {...field}
+                      />
+                      <div className="absolute inset-y-0 right-3 flex items-center gap-2">
+                        {isDirty && !invalid && (
+                          <CheckCircle2 className="h-5 w-5 text-green-500 pointer-events-none" />
+                        )}
+                        {invalid && (
+                          <XCircle className="h-5 w-5 text-red-500 pointer-events-none" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setShowToken(!showToken)}
+                          aria-label={showToken ? 'Ocultar token' : 'Mostrar token'}
+                          className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                        >
+                          {showToken ? (
+                            <EyeOff className="h-5 w-5" aria-hidden="true" />
+                          ) : (
+                            <Eye className="h-5 w-5" aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
           </form>
         </Form>
       </CardContent>
-      <CardFooter className="flex flex-wrap gap-2 pt-4 justify-end">
+      <CardFooter className="px-0 pt-6 border-t border-gray-100 flex flex-wrap sm:flex-nowrap gap-3 justify-end mt-auto pb-0">
+        <Button
+          variant="outline"
+          onClick={() => form.reset({ url: '', token: '' })}
+          disabled={testing || saving}
+          className="w-full sm:w-auto h-11 bg-red-50 text-red-600 border-transparent hover:bg-red-100 hover:text-red-700 transition-colors duration-200 hover:scale-[1.02]"
+          aria-label={`Limpar formulário do ${title}`}
+        >
+          <Trash className="mr-2 h-4 w-4" aria-hidden="true" />
+          Limpar
+        </Button>
         <Button
           variant="secondary"
           onClick={onTest}
           disabled={testing || saving}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto h-11 bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors duration-200 hover:scale-[1.02]"
+          aria-label={`Testar conexão com ${title}`}
         >
-          {testing ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Activity className="mr-2 h-4 w-4" />
-          )}
+          <Play className="mr-2 h-4 w-4" aria-hidden="true" />
           Testar
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={onClear}
-          disabled={testing || saving}
-          className="w-full sm:w-auto"
-        >
-          <Trash className="mr-2 h-4 w-4" />
-          Limpar
         </Button>
         <Button
           onClick={form.handleSubmit(onSave)}
           disabled={!form.formState.isValid || saving}
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full sm:w-auto h-11 bg-blue-600 hover:bg-blue-800 text-white transition-colors duration-200 hover:scale-[1.02] disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:scale-100"
+          aria-label={`Salvar credenciais do ${title}`}
         >
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          <Save className="mr-2 h-4 w-4" />
+          {saving ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+          )}
           Salvar
         </Button>
       </CardFooter>
@@ -189,46 +292,42 @@ export default function ConfiguracaoMovideskJira() {
 
   useEffect(() => {
     getMovideskJiraConfig()
-      .then((res) => {
-        setData(res)
-        setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1000px] mx-auto w-full">
-        {[1, 2].map((i) => (
-          <Card key={i} className="w-full h-[400px] flex flex-col p-6 space-y-4">
-            <Skeleton className="h-8 w-[150px]" />
-            <Skeleton className="h-[70px] w-full" />
-            <Skeleton className="h-[100px] w-full" />
-            <div className="flex gap-2 justify-end pt-4 mt-auto">
-              <Skeleton className="h-10 w-[120px]" />
-              <Skeleton className="h-10 w-[100px]" />
-              <Skeleton className="h-10 w-[100px]" />
-            </div>
-          </Card>
-        ))}
+      <div className="animate-fade-in-up max-w-[1000px] mx-auto space-y-8 w-full">
+        <div>
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {[1, 2].map((i) => (
+            <Card key={i} className="h-[450px] p-8 space-y-6">
+              <Skeleton className="h-full w-full" />
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 max-w-[1000px] mx-auto w-full">
+    <div className="animate-fade-in-up max-w-[1000px] mx-auto space-y-8 pb-12 w-full">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Integrações Movidesk e Jira</h2>
-        <p className="text-muted-foreground">Configure as credenciais de acesso às plataformas.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Integrações Externas</h2>
+        <p className="text-gray-600 mt-1">Configure as credenciais de Movidesk e Jira</p>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <IntegrationForm
           type="movidesk"
           title="Movidesk"
-          cardClasses="bg-blue-50 border-blue-200"
+          desc="Sistema de Help Desk e Atendimento."
+          border="border-l-4 border-l-blue-400"
+          icon={<LayoutDashboard className="h-6 w-6 text-blue-500" />}
           urlPlaceholder="https://atendimento.movidesk.com..."
           tokenPlaceholder="Cole aqui o token da API Movidesk"
           initialData={data?.movidesk}
@@ -237,10 +336,10 @@ export default function ConfiguracaoMovideskJira() {
         <IntegrationForm
           type="jira"
           title="Jira"
-          cardClasses="bg-slate-900 border-slate-700 text-slate-50"
-          labelClasses="text-slate-200"
-          inputClasses="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
-          urlPlaceholder="https://servicelogic-es.atlassian.net"
+          desc="Gestão de Projetos e Desenvolvimento."
+          border="border-l-4 border-l-blue-700"
+          icon={<Ticket className="h-6 w-6 text-blue-700" />}
+          urlPlaceholder="https://sua-empresa.atlassian.net"
           tokenPlaceholder="Cole aqui o token da API Jira"
           initialData={data?.jira}
           testFn={testJiraConnection}
