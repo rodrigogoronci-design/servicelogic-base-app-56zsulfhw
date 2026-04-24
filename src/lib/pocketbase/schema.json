@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T19:43:30.175Z",
+  "generatedAt": "2026-04-24T19:56:25.734Z",
   "collections": [
     {
       "name": "users",
@@ -388,6 +388,54 @@
           "name": "dados_novos",
           "type": "json",
           "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "comentarios",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id = usuario_id",
+        "delete": "@request.auth.perfil = 'Atendente'"
+      },
+      "fields": [
+        {
+          "name": "chamado_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "chamados"
+        },
+        {
+          "name": "usuario_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "texto",
+          "type": "text",
+          "required": true,
           "system": false
         },
         {

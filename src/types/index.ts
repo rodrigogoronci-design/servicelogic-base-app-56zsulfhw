@@ -25,6 +25,36 @@ export interface Chamado {
   jira_issue_id?: string
   created: string
   updated: string
+  expand?: {
+    cliente_id?: Cliente
+    atendente_id?: Usuario
+  }
+}
+
+export interface Comentario {
+  id: string
+  chamado_id: string
+  usuario_id: string
+  texto: string
+  created: string
+  updated: string
+  expand?: {
+    usuario_id?: Usuario
+  }
+}
+
+export interface LogAuditoria {
+  id: string
+  usuario_id: string
+  tabela: string
+  acao: string
+  dados_anteriores: any
+  dados_novos: any
+  created: string
+  updated: string
+  expand?: {
+    usuario_id?: Usuario
+  }
 }
 
 export interface Cliente {
