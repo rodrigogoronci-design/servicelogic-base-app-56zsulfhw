@@ -77,6 +77,8 @@ export interface Validacao {
   resposta: 'Validei' | 'Não funcionou'
   comentario: string
   data_validacao: string
+  token?: string
+  data_expiracao?: string
   created: string
   updated: string
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T20:06:23.178Z",
+  "generatedAt": "2026-04-24T20:15:10.088Z",
   "collections": [
     {
       "name": "users",
@@ -284,9 +284,23 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "token",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_expiracao",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_validacoes_token` ON `validacoes` (token) WHERE token != ''"
+      ]
     },
     {
       "name": "notificacoes",
