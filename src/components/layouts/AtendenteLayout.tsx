@@ -1,5 +1,13 @@
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom'
-import { History, LayoutDashboard, LogOut, Ticket, User, Settings } from 'lucide-react'
+import {
+  History,
+  LayoutDashboard,
+  LogOut,
+  Ticket,
+  User,
+  Settings,
+  Link as LinkIcon,
+} from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { NotificationBell } from '../NotificationBell'
@@ -94,6 +102,19 @@ export function AtendenteLayout() {
                     <Link to="/configuracoes/integracao-whatsapp">
                       <Settings />
                       <span className="truncate">Z-API WhatsApp</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname.startsWith(
+                      '/configuracoes/integracao-movidesk-jira',
+                    )}
+                  >
+                    <Link to="/configuracoes/integracao-movidesk-jira">
+                      <LinkIcon />
+                      <span className="truncate">Movidesk + Jira</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

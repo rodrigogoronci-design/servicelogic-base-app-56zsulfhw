@@ -96,6 +96,20 @@ export interface RespostaTesteConexao {
   timestamp: string
 }
 
+export interface ConfiguracaoMovidesk {
+  url: string
+  token: string
+  ultimaAtualizacao?: string
+  atualizadoPor?: string
+}
+
+export interface ConfiguracaoJira {
+  url: string
+  token: string
+  ultimaAtualizacao?: string
+  atualizadoPor?: string
+}
+
 export interface Notificacao {
   id: string
   usuario_id: string

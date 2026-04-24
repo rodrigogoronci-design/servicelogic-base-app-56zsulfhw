@@ -14,6 +14,7 @@ import RecuperarSenha from './pages/RecuperarSenha'
 import Dashboard from './pages/Dashboard'
 import Auditoria from './pages/Auditoria'
 import ConfiguracaoWhatsApp from './pages/ConfiguracaoWhatsApp'
+import ConfiguracaoMovideskJira from './pages/ConfiguracaoMovideskJira'
 import Portal from './pages/Portal'
 import Validacao from './pages/Validacao'
 import ValidacaoExterna from './pages/ValidacaoExterna'
@@ -49,6 +50,10 @@ const App = () => (
                 <Route
                   path="/configuracoes/integracao-whatsapp"
                   element={<ConfiguracaoWhatsApp />}
+                />
+                <Route
+                  path="/configuracoes/integracao-movidesk-jira"
+                  element={<ConfiguracaoMovideskJira />}
                 />
               </Route>
             </Route>
