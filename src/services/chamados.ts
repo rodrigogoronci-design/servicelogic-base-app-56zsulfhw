@@ -24,3 +24,11 @@ export const getChamadosPaginated = async (
 export const updateChamadoStatus = async (id: string, status: string) => {
   return await pb.collection('chamados').update<Chamado>(id, { status })
 }
+
+export const getChamadosPortal = async (filterStr?: string) => {
+  return await pb.collection('chamados').getFullList<Chamado>({
+    sort: '-created',
+    filter: filterStr,
+    expand: 'cliente_id,atendente_id',
+  })
+}
