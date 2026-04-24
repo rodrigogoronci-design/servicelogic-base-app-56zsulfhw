@@ -3,21 +3,28 @@ export type Perfil = 'Atendente' | 'Cliente'
 export interface Usuario {
   id: string
   email: string
-  nome: string
+  name: string
   perfil: Perfil
   ativo: boolean
+  created: string
+  updated: string
 }
 
 export interface Chamado {
   id: string
   numero: string
   cliente_id: string
-  status: 'Aberto' | 'Pendente' | 'Resolvido' | 'Fechado'
-  prioridade: 'Baixa' | 'Média' | 'Alta' | 'Urgente'
+  atendente_id: string
+  status: 'Aberto' | 'Aguardando Cliente' | 'Em Análise' | 'Fechado'
+  prioridade: 'Baixa' | 'Média' | 'Alta'
   titulo: string
   descricao: string
   data_criacao: string
-  tempo_decorrido: string
+  data_conclusao?: string
+  tempo_decorrido: number
+  jira_issue_id?: string
+  created: string
+  updated: string
 }
 
 export interface Cliente {
@@ -27,4 +34,30 @@ export interface Cliente {
   email: string
   telefone: string
   contato_principal: string
+  usuario_id: string
+  created: string
+  updated: string
+}
+
+export interface Validacao {
+  id: string
+  chamado_id: string
+  cliente_id: string
+  status: 'Pendente' | 'Validado' | 'Rejeitado'
+  resposta: 'Validei' | 'Não funcionou'
+  comentario: string
+  data_validacao: string
+  created: string
+  updated: string
+}
+
+export interface Notificacao {
+  id: string
+  usuario_id: string
+  tipo: 'WhatsApp' | 'Email' | 'Sistema'
+  titulo: string
+  mensagem: string
+  lido: boolean
+  created: string
+  updated: string
 }

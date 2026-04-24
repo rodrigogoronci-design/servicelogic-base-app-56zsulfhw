@@ -1,11 +1,15 @@
 import { Clock, Ticket, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MOCK_CHAMADOS } from '@/mocks'
+import { Chamado } from '@/types'
 
-export function MetricsCards() {
-  const total = MOCK_CHAMADOS.length
-  const pendentes = MOCK_CHAMADOS.filter(
-    (c) => c.status === 'Aberto' || c.status === 'Pendente',
+interface MetricsCardsProps {
+  chamados: Chamado[]
+}
+
+export function MetricsCards({ chamados }: MetricsCardsProps) {
+  const total = chamados.length
+  const pendentes = chamados.filter(
+    (c) => c.status === 'Aberto' || c.status === 'Em Análise' || c.status === 'Aguardando Cliente',
   ).length
 
   return (

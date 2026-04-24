@@ -19,9 +19,11 @@ export function TicketsTable({ chamados }: TicketsTableProps) {
     switch (status) {
       case 'Aberto':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-100/80 border-blue-200'
-      case 'Pendente':
+      case 'Aguardando Cliente':
         return 'bg-amber-100 text-amber-800 hover:bg-amber-100/80 border-amber-200'
-      case 'Resolvido':
+      case 'Em Análise':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-100/80 border-purple-200'
+      case 'Fechado':
         return 'bg-green-100 text-green-800 hover:bg-green-100/80 border-green-200'
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80 border-gray-200'
@@ -31,7 +33,6 @@ export function TicketsTable({ chamados }: TicketsTableProps) {
   const getPrioridadeColor = (prioridade: string) => {
     switch (prioridade) {
       case 'Alta':
-      case 'Urgente':
         return 'text-red-600 font-semibold'
       case 'Média':
         return 'text-amber-600 font-medium'
@@ -92,7 +93,7 @@ export function TicketsTable({ chamados }: TicketsTableProps) {
                 <span className={getPrioridadeColor(chamado.prioridade)}>{chamado.prioridade}</span>
               </TableCell>
               <TableCell className="text-right text-sm text-muted-foreground">
-                {chamado.tempo_decorrido}
+                {chamado.tempo_decorrido ? `${chamado.tempo_decorrido}h` : '0h'}
               </TableCell>
             </TableRow>
           ))}

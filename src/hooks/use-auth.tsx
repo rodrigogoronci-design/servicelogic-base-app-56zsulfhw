@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { Usuario } from '@/types'
-import { MOCK_USERS } from '@/mocks'
-import { useToast } from '@/hooks/use-toast'
+import pb from '@/lib/pocketbase/client'
 
 interface AuthContextType {
   user: Usuario | null
@@ -13,33 +12,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Usuario | null>(null)
+  const [user, setUser] = useState<Usuario | null>(pb.authStore.record as unknown as Usuario | null)
   const [isLoading, setIsLoading] = useState(true)
-  const { toast } = useToast()
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('@servicelogic:user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
+    const unsubscribe = pb.authStore.onChange((_token, record) => {
+      setUser(record as unknown as Usuario | null)
+    })
     setIsLoading(false)
+    return () => {
+      unsubscribe()
+    }
   }, [])
 
   const login = async (email: string, senha?: string) => {
     setIsLoading(true)
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
-
-    const foundUser = MOCK_USERS.find((u) => u.email === email)
-
-    if (foundUser) {
-      setUser(foundUser)
-      localStorage.setItem('@servicelogic:user', JSON.stringify(foundUser))
-      toast({
-        title: 'Login realizado com sucesso',
-        description: `Bem-vindo, ${foundUser.nome}!`,
-      })
-    } else {
+    try {
+      await pb.collection('users').authWithPassword(email, senha || '')
+    } catch (error) {
       setIsLoading(false)
       throw new Error('Credenciais inválidas')
     }
@@ -47,8 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    setUser(null)
-    localStorage.removeItem('@servicelogic:user')
+    pb.authStore.clear()
   }
 
   return (

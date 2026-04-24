@@ -65,7 +65,7 @@ export function ClienteLayout() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="hidden md:flex gap-2">
                   <User className="size-4" />
-                  <span className="truncate max-w-[150px]">{user?.nome}</span>
+                  <span className="truncate max-w-[150px]">{user?.name || 'Usuário'}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

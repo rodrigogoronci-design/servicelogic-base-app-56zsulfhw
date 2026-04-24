@@ -46,14 +46,16 @@ export default function Login() {
     setIsSubmitting(true)
     try {
       await login(data.email, data.senha)
-      // Redirection is handled implicitly by ProtectedRoute or can be done here.
-      // Let's rely on ProtectedRoute logic, but we navigate to / to re-trigger check
+      toast({
+        title: 'Login realizado com sucesso',
+        description: 'Bem-vindo ao Servicelogic!',
+      })
       navigate('/', { replace: true })
     } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Erro de Autenticação',
-        description: 'Erro ao carregar dados. Tente novamente.',
+        description: 'Credenciais inválidas. Tente novamente.',
       })
     } finally {
       setIsSubmitting(false)
@@ -131,9 +133,16 @@ export default function Login() {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col border-t bg-muted/20 px-6 py-4">
-          <div className="text-sm text-muted-foreground text-center">
-            Dica: Use <strong className="text-foreground">atendente@servicelogic.com</strong> ou{' '}
-            <strong className="text-foreground">cliente@empresa.com</strong>
+          <div className="text-sm text-muted-foreground text-center space-y-1">
+            <div>
+              Dica de acesso (Senha: <strong className="text-foreground">Skip@Pass</strong>)
+            </div>
+            <div>
+              <strong className="text-foreground">ana@servicelogic.com.br</strong> (Atendente)
+            </div>
+            <div>
+              <strong className="text-foreground">cliente@empresa.com.br</strong> (Cliente)
+            </div>
           </div>
         </CardFooter>
       </Card>

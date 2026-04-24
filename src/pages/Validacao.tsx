@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,9 +11,34 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { getValidacoes } from '@/services/validacoes'
+import { Validacao } from '@/types'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useRealtime } from '@/hooks/use-realtime'
 
-export default function Validacao() {
+export default function ValidacaoPage() {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(true)
+  const [validacoes, setValidacoes] = useState<Validacao[]>([])
+
+  const loadData = async () => {
+    try {
+      const data = await getValidacoes()
+      setValidacoes(data)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  useRealtime('validacoes', () => {
+    loadData()
+  })
 
   const handleAction = (tipo: 'aprovar' | 'rejeitar') => {
     toast({
@@ -21,6 +47,33 @@ export default function Validacao() {
       variant: tipo === 'aprovar' ? 'default' : 'destructive',
     })
   }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in-up max-w-3xl mx-auto">
+        <Skeleton className="h-12 w-[300px]" />
+        <Skeleton className="h-[400px] w-full rounded-xl" />
+      </div>
+    )
+  }
+
+  if (validacoes.length === 0) {
+    return (
+      <div className="space-y-8 animate-fade-in-up max-w-3xl mx-auto">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Validação de Solução</h1>
+          <p className="text-muted-foreground">
+            Analise e aprove as soluções propostas para seus chamados.
+          </p>
+        </div>
+        <Card className="border-border shadow-sm p-12 text-center text-muted-foreground">
+          Nenhuma validação pendente no momento.
+        </Card>
+      </div>
+    )
+  }
+
+  const validacao = validacoes[0]
 
   return (
     <div className="space-y-8 animate-fade-in-up max-w-3xl mx-auto">
@@ -35,27 +88,28 @@ export default function Validacao() {
         <CardHeader className="bg-muted/30 border-b pb-4">
           <div className="flex items-center justify-between mb-2">
             <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-              Aguardando Validação
+              {validacao.status === 'Pendente' ? 'Aguardando Validação' : validacao.status}
             </Badge>
             <span className="text-sm font-medium text-muted-foreground">CH-1003</span>
           </div>
           <CardTitle className="text-xl">Atualização de cadastro</CardTitle>
-          <CardDescription>Finalizado em 02/11/2023 às 10:15</CardDescription>
+          <CardDescription>
+            {validacao.data_validacao
+              ? `Finalizado em ${new Date(validacao.data_validacao).toLocaleDateString()}`
+              : 'Aguardando sua ação'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-6 space-y-4">
           <div>
             <h4 className="font-semibold mb-1">Sua Solicitação</h4>
             <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-              Por favor, atualizem nosso endereço de faturamento para o novo escritório na Av.
-              Paulista, 1000.
+              Por favor, verifique a solução proposta para o seu chamado.
             </p>
           </div>
           <div>
             <h4 className="font-semibold mb-1 text-primary">Solução Proposta (Atendente)</h4>
             <p className="text-sm text-foreground bg-primary/5 p-3 rounded-md border border-primary/10">
-              Endereço de faturamento atualizado no ERP conforme solicitado. As próximas faturas já
-              serão emitidas com os novos dados. Por favor, confirme se está tudo correto no seu
-              painel financeiro.
+              {validacao.comentario || 'Solução aplicada. Por favor confirme.'}
             </p>
           </div>
         </CardContent>

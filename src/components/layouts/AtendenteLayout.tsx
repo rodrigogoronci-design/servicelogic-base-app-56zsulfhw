@@ -77,7 +77,7 @@ export function AtendenteLayout() {
               <User className="size-4 text-muted-foreground" />
             </div>
             <div className="flex flex-col truncate">
-              <span className="font-medium truncate">{user?.nome}</span>
+              <span className="font-medium truncate">{user?.name || 'Usuário'}</span>
               <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
             </div>
           </div>

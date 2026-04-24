@@ -1,21 +1,34 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
-import { MOCK_CHAMADOS } from '@/mocks'
 import { TicketsTable } from '@/components/dashboard/TicketsTable'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getChamados } from '@/services/chamados'
+import { Chamado } from '@/types'
+import { useRealtime } from '@/hooks/use-realtime'
 
 export default function Portal() {
-  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
+  const [chamados, setChamados] = useState<Chamado[]>([])
 
-  const chamados = MOCK_CHAMADOS.filter((c) => c.cliente_id === user?.id)
+  const loadData = async () => {
+    try {
+      const data = await getChamados()
+      setChamados(data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
+    loadData()
   }, [])
+
+  useRealtime('chamados', () => {
+    loadData()
+  })
 
   return (
     <div className="space-y-8 animate-fade-in-up max-w-5xl mx-auto">
