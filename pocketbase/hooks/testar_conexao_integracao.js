@@ -1,9 +1,7 @@
-// @deps zod@3.23.8
 routerAdd(
   'POST',
   '/backend/v1/testar-conexao-integracao',
   (e) => {
-    const { z } = require('zod')
     const authRecord = e.auth
 
     if (!authRecord || authRecord.getString('perfil') !== 'Atendente') {
@@ -12,21 +10,21 @@ routerAdd(
 
     const body = e.requestInfo().body || {}
 
-    const schema = z.object({
-      tipo: z.enum(['movidesk', 'jira'], {
-        errorMap: () => ({ message: "O campo 'tipo' deve ser 'movidesk' ou 'jira'" }),
-      }),
-      url: z.string().url('URL inválida').startsWith('https://', 'A URL deve começar com https://'),
-      token: z.string().min(30, 'O token deve ter no mínimo 30 caracteres'),
-    })
+    const tipo = body.tipo
+    const url = body.url
+    const token = body.token
 
-    const parsed = schema.safeParse(body)
-    if (!parsed.success) {
-      const firstError = parsed.error.errors[0].message
-      return e.json(400, { error: firstError })
+    if (tipo !== 'movidesk' && tipo !== 'jira') {
+      return e.json(400, { error: "O campo 'tipo' deve ser 'movidesk' ou 'jira'" })
     }
 
-    const { tipo, url, token } = parsed.data
+    if (!url || typeof url !== 'string' || !url.startsWith('https://')) {
+      return e.json(400, { error: 'A URL deve começar com https://' })
+    }
+
+    if (!token || typeof token !== 'string' || token.length < 30) {
+      return e.json(400, { error: 'O token deve ter no mínimo 30 caracteres' })
+    }
 
     try {
       const res = $http.send({
