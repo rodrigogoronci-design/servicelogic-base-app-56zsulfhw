@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom'
-import { History, LayoutDashboard, LogOut, Ticket, User } from 'lucide-react'
+import { History, LayoutDashboard, LogOut, Ticket, User, Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { NotificationBell } from '../NotificationBell'
@@ -73,6 +73,27 @@ export function AtendenteLayout() {
                     <Link to="/auditoria">
                       <History />
                       <span>Auditoria</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Configurações
+            </div>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname.startsWith('/configuracoes/integracao-whatsapp')}
+                  >
+                    <Link to="/configuracoes/integracao-whatsapp">
+                      <Settings />
+                      <span className="truncate">Z-API WhatsApp</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

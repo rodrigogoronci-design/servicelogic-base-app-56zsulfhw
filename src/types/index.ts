@@ -83,6 +83,19 @@ export interface Validacao {
   updated: string
 }
 
+export interface ConfiguracaoZAPI {
+  url: string
+  dominio: string
+  token: string
+  numeroTelefone: string
+}
+
+export interface RespostaTesteConexao {
+  sucesso: boolean
+  mensagem: string
+  timestamp: string
+}
+
 export interface Notificacao {
   id: string
   usuario_id: string
