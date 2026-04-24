@@ -1,5 +1,3 @@
-const collectionsToAudit = ['chamados', 'clientes', 'validacoes']
-
 onRecordAfterCreateSuccess(
   (e) => {
     const auditCol = $app.findCollectionByNameOrId('logs_auditoria')
@@ -12,7 +10,9 @@ onRecordAfterCreateSuccess(
     $app.saveNoValidate(record)
     e.next()
   },
-  ...collectionsToAudit,
+  'chamados',
+  'clientes',
+  'validacoes',
 )
 
 onRecordAfterUpdateSuccess(
@@ -27,7 +27,9 @@ onRecordAfterUpdateSuccess(
     $app.saveNoValidate(record)
     e.next()
   },
-  ...collectionsToAudit,
+  'chamados',
+  'clientes',
+  'validacoes',
 )
 
 onRecordAfterDeleteSuccess(
@@ -42,5 +44,7 @@ onRecordAfterDeleteSuccess(
     $app.saveNoValidate(record)
     e.next()
   },
-  ...collectionsToAudit,
+  'chamados',
+  'clientes',
+  'validacoes',
 )
